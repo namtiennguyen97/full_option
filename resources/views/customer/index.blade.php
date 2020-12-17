@@ -103,15 +103,14 @@
 <script>
 
 
-
-
-
     $('#addCustomer').click(function () {
         $('#modalAddCustomer').modal('show');
     });
     $('#closeModal').click(function () {
         $('#modalAddCustomer').modal('hide');
     });
+
+
    function loadFile(event) {
        let output = document.getElementById('imagePreview');
        output.src = URL.createObjectURL(event.target.files[0]);
@@ -133,7 +132,14 @@
             success: function (data) {
                 alertify.success('New Customer Data has been created!');
                 // window.location.reload();
-                $('tbody').html(data.table_data);
+                $('#show_data').append("<tr>" +
+                    "<td>" + data.name + "</td>" +
+                    "<td>" + data.full_name + "</td>" +
+                    "<td>" + data.age + "</td>" +
+                    "<td>" + data.phone + "</td>" +
+                    "<td>" + data.address + "</td>" +
+                    "<td>" + '<img width="100" class="img-thumbnail" src="storage/'+ data.image +'">' + "</td>" +
+                    "</tr>");
 
             }
         });
@@ -151,6 +157,7 @@
             success: function (data) {
                 $('#show_data').html(data.total_data);
                 $('#total_data').text(data.total_column);
+
             }
         });
     }
