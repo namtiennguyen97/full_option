@@ -86,7 +86,6 @@ class CustomerController extends Controller
     }
 
     public function destroy($id){
-        $data = DB::table('customer')->orderBy('id','desc')->get();
         $output = '';
         $customer = Customer::find($id);
         $image = $customer->image;
@@ -94,7 +93,10 @@ class CustomerController extends Controller
             Storage::delete('/public/'. $image);
         }
         $customer->delete();
-        if ($customer->delete() == true){
+
+        $data = DB::table('customer')->orderBy('id','desc')->get();
+
+//        if ($customer->delete() == true){
             foreach ($data as $row){
                 $output  .='
         <tr>
@@ -108,7 +110,7 @@ class CustomerController extends Controller
         </tr>
         ';
             }
-        }
+//        }
         $data = array(
             'total_data' => $output
         );
