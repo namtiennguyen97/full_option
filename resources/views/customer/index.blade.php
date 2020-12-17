@@ -47,7 +47,7 @@
     </tr>
     </thead>
 
-    <tbody>
+    <tbody id="show_data">
 {{--    @foreach($customer as $value)--}}
 {{--        <tr>--}}
 {{--            <td>{{$value->name}}</td>--}}
@@ -104,7 +104,6 @@
 
 
 
-    fetch_customer_data();
 
 
     $('#addCustomer').click(function () {
@@ -124,7 +123,6 @@
 
     $('#customerAddForm').on('submit', function (e) {
         e.preventDefault();
-
         $.ajax({
             url: "{{route('customer.create')}}",
             method: 'post',
@@ -141,6 +139,9 @@
         });
     });
 
+
+    fetch_customer_data();
+
     function fetch_customer_data(query = '') {
         $.ajax({
             url: "{{route('customer.searching')}}",
@@ -148,7 +149,7 @@
             data: {query: query},
             dataType: 'json',
             success: function (data) {
-                $('tbody').html(data.total_data);
+                $('#show_data').html(data.total_data);
                 $('#total_data').text(data.total_column);
             }
         });
