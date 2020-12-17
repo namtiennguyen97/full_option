@@ -21,4 +21,5 @@ Route::group(['prefix'=>'customer'], function (){
     Route::get('/',[\App\Http\Controllers\CustomerController::class,'index'])->name('customer.index');
     Route::post('/create',[\App\Http\Controllers\CustomerController::class,'store'])->name('customer.create');
     Route::get('/searching',[\App\Http\Controllers\CustomerController::class,'searching'])->name('customer.searching');
+    Route::get('/destroy/{id}',[\App\Http\Controllers\CustomerController::class,'destroy'])->name('customer.destroy');
 });

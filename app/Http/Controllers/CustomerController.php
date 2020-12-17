@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CustomerController extends Controller
 {
@@ -67,6 +68,7 @@ class CustomerController extends Controller
          <td>' . $row->phone . '</td>
          <td>' . $row->address . '</td>
          <td><img width="100" src="storage/' . $row->image . '" class="img-thumbnail"></td>
+         <td><i class="fa fa-trash btn btn-danger deleteCustomer" data-id=" '. $row->id .' " aria-hidden="true"></i></td>
         </tr>
         ';
                 }
@@ -81,6 +83,36 @@ class CustomerController extends Controller
             );
             return json_encode($data);
         }
+    }
+
+    public function destroy($id){
+        $data = DB::table('customer')->orderBy('id','desc')->get();
+        $output = '';
+        $customer = Customer::find($id);
+        $image = $customer->image;
+        if ($image){
+            Storage::delete('/public/'. $image);
+        }
+        $customer->delete();
+        if ($customer->delete() == true){
+            foreach ($data as $row){
+                $output  .='
+        <tr>
+         <td>' . $row->name . '</td>
+         <td>' . $row->full_name . '</td>
+          <td>' . $row->age . '</td>
+         <td>' . $row->phone . '</td>
+         <td>' . $row->address . '</td>
+         <td><img width="100" src="storage/' . $row->image . '" class="img-thumbnail"></td>
+          <td><i class="fa fa-trash btn btn-danger deleteCustomer" data-id=" '. $row->id.' " aria-hidden="true"></i></td>
+        </tr>
+        ';
+            }
+        }
+        $data = array(
+            'total_data' => $output
+        );
+        return json_encode($data);
     }
 
 }
