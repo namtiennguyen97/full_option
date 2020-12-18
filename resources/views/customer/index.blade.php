@@ -55,7 +55,8 @@
         <th>Phone</th>
         <th>Address</th>
         <th>Image</th>
-        <th>Option</th>
+        <th>Delete</th>
+        <th>Edit</th>
     </tr>
     </thead>
 
@@ -139,6 +140,80 @@
     </div>
 </div>
 
+
+
+{{--Modal Edit--}}
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title modal-editCustomer" id="exampleModalLabel">Edit Customer Data</h5>
+                <button type="button" class="close" id="closeEditModal" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="customerEditForm" enctype="multipart/form-data">
+                    @csrf
+                    <table class="table table-dark">
+                        <tr>
+                            <td>Name:</td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" name="name" id="editName" class="form-control editName"></td>
+                        </tr>
+                        <tr hidden>
+                            <td hidden><input readonly hidden id="editId"></td>
+                        </tr>
+                        <tr>
+                            <td>Full Name:</td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" name="full_name" id="editFullName" class="form-control"></td>
+                        </tr>
+                        <tr>
+                            <td>Age:</td>
+                        </tr>
+                        <tr>
+                            <td><input type="number" name="age" id="editAge" class="form-control"></td>
+                        </tr>
+                        <tr>
+                            <td>Phone:</td>
+                        </tr>
+                        <tr>
+                            <td><input type="number" name="phone" id="editPhone" class="form-control"></td>
+                        </tr>
+                        <tr>
+                            <td>Address:</td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" name="address" id="editAddress" class="form-control"></td>
+                        </tr>
+                        <tr>
+                            <td>Image</td>
+                        </tr>
+                        <tr>
+                            <td><input type="file" accept="image/*" name="image" id="editImage" onchange="loadEditFile(event)"></td>
+                        </tr>
+                        <tr>
+                            <td>Current Image</td>
+                        </tr>
+                        <tr>
+                            <td><img id="imageEditPreview" class="img-thumbnail"></td>
+                        </tr>
+                    </table>
+                    <input type="submit" class="btn btn-success" value="Edit Data">
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
 <script>
 
 
@@ -149,6 +224,30 @@
         $('#modalAddCustomer').modal('hide');
     });
 
+    $('#show_data').on('click','.editCustomer',function () {
+        $('#editCustomerModal').modal('show');
+        let id= $(this).data('id');
+        let name = $(this).data('name');
+        let full_name = $(this).data('full_name');
+        let age = $(this).data('age');
+        let address = $(this).data('address');
+        let phone = $(this).data('phone');
+        let image = $(this).data('image');
+        $('#editName').val(name);
+        $('#editFullName').val(full_name);
+        $('#editAddress').val(address);
+        $('#editAge').val(age);
+        $('#editPhone').val(phone);
+        $('#editId').val(id);
+        // $('#editImage').val(image);
+
+    });
+
+    $('#closeEditModal').click(function(){
+        $('#editCustomerModal').modal('hide');
+    });
+
+    // preview image before it uploaded
 
     function loadFile(event) {
         let output = document.getElementById('imagePreview');
@@ -158,9 +257,24 @@
             URL.revokeObjectURL(output.src) // free memory
         }
     }
+ //end
 
+
+    function loadEditFile(event) {
+        let output = document.getElementById('imageEditPreview');
+        output.src = URL.createObjectURL(event.target.files[0]);
+        //dong nay thi ko biet lam gi
+        output.onload = function () {
+            URL.revokeObjectURL(output.src) // free memory
+        }
+    }
+
+    //end preview image
+
+    //create data customer
     $('#customerAddForm').on('submit', function (e) {
         e.preventDefault();
+
         $.ajax({
             url: "{{route('customer.create')}}",
             method: 'post',
@@ -170,22 +284,18 @@
             processData: false,
             success: function (data) {
                 alertify.success('New Customer Data has been created!');
-                // window.location.reload();
-                $('#show_data').append("<tr>" +
-                    "<td>" + data.name + "</td>" +
-                    "<td>" + data.full_name + "</td>" +
-                    "<td>" + data.age + "</td>" +
-                    "<td>" + data.phone + "</td>" +
-                    "<td>" + data.address + "</td>" +
-                    "<td>" + '<img width="100" class="img-thumbnail" src="storage/' + data.image + '">' + "</td>" +
-                    "<td>" + '<i class="fa fa-trash btn btn-danger deleteCustomer" data-id=" ' + data.id + ' " aria-hidden="true"></i>' + "</td>" +
-                    "</tr>");
+                // let total_data = data.length;
+                // $('#total_data').text(total_data);
+
+                reloadData();
 
             }
-        });
+    });
     });
 
+    //end create data
 
+    //make/call fetch all data function
     fetch_customer_data();
 
     function fetch_customer_data(query = '') {
@@ -205,23 +315,57 @@
     $(document).on('keyup', '#search', function () {
         let query = $(this).val();
         fetch_customer_data(query);
-    })
+    });
 
+    //end show data
 
-
+    //delete customer
     $('#show_data').on('click','.deleteCustomer',function () {
         let id = $(this).data('id');
         $.ajax({
             url: "customer/destroy/"+ id,
             method: 'get',
-            dataType: 'json',
             success: function (data) {
-                $('#show_data').empty();
-                $('#show_data').html(data.total_data);
+                reloadData();
+
                 alertify.success('Deleted!');
             }
         })
     })
+
+    //end delete customer
+
+    //edit customer
+    $('#customerEditForm').on('submit', function (e) {
+        e.preventDefault();
+        let id_edit = $('#editId').val();
+            $.ajax({
+               url: 'customer/edit/'+ id_edit ,
+               method: 'post',
+               data: $('#customerEditForm').serialize(),
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function (data) {
+                    alert('ok');
+                }
+            });
+
+    });
+
+
+    reloadData();
+       function reloadData() {
+         $.ajax({
+        url: "{{route('customer.data')}}",
+        method: 'get',
+        dataType: 'json',
+        success: function (data) {
+            $('#show_data').html(data.total_data);
+            $('#total_data').text(data.total_column);
+        }
+        })
+        }
 
 
 

@@ -11,7 +11,9 @@ class CustomerController extends Controller
 {
     public function index()
     {
+
         $customer = Customer::all();
+
         return view('customer.index', compact('customer'));
     }
 
@@ -33,6 +35,7 @@ class CustomerController extends Controller
             $customer->image = $path;
         }
         $customer->save();
+//        $total_data = count($customer);
 
         return response()->json($customer);
 
@@ -41,7 +44,7 @@ class CustomerController extends Controller
 
     public function searching(Request $request)
     {
-        if ($request->ajax()) {
+
             $query = $request->get('query');
             $output = '';
 
@@ -69,6 +72,8 @@ class CustomerController extends Controller
          <td>' . $row->address . '</td>
          <td><img width="100" src="storage/' . $row->image . '" class="img-thumbnail"></td>
          <td><i class="fa fa-trash btn btn-danger deleteCustomer" data-id=" '. $row->id .' " aria-hidden="true"></i></td>
+         <td><i class="fa fa-address-book btn btn-info editCustomer" data-id=" '. $row->id .' " data-name=" '. $row->name .' "
+          data-full_name="'. $row->full_name .'" data-age="'. $row->age .'" data-address="'. $row->address .'" data-phone="'. $row->phone .'" data-image=" '. $row->image .' " aria-hidden="true"></i></td>
         </tr>
         ';
                 }
@@ -82,7 +87,7 @@ class CustomerController extends Controller
                 'total_column' => $total_row
             );
             return json_encode($data);
-        }
+
     }
 
     public function destroy($id){
@@ -94,11 +99,36 @@ class CustomerController extends Controller
         }
         $customer->delete();
 
-        $data = DB::table('customer')->orderBy('id','desc')->get();
 
+    }
+
+    public function editCustomer(Request $request, $id){
+        $customer = Customer::findOrFail($id);
+        $customer->name = $request->input('name');
+        $customer->full_name = $request->input('full_name');
+        $customer->age = $request->input('age');
+        $customer->address = $request->input('address');
+        if ($request->hasFile('image')){
+            $currentImage = $customer->image;
+            if ($currentImage){
+                Storage::delete('/public/' .$currentImage);
+            }
+            $image1 = $request->file('image');
+            $path = $image1->store('images','public');
+            $customer->image = $path;
+        }
+        $customer->save();
+
+    }
+
+    public function fetch_data(){
+        $output = '';
+        $data = DB::table('customer')->orderBy('id','desc')->get();
 //        if ($customer->delete() == true){
-            foreach ($data as $row){
-                $output  .='
+        $total_row = $data->count();
+
+        foreach ($data as $row){
+            $output  .='
         <tr>
          <td>' . $row->name . '</td>
          <td>' . $row->full_name . '</td>
@@ -107,12 +137,15 @@ class CustomerController extends Controller
          <td>' . $row->address . '</td>
          <td><img width="100" src="storage/' . $row->image . '" class="img-thumbnail"></td>
           <td><i class="fa fa-trash btn btn-danger deleteCustomer" data-id=" '. $row->id.' " aria-hidden="true"></i></td>
+          <td><i class="fa fa-address-book btn btn-info editCustomer" data-id=" '. $row->id .' " data-name=" '. $row->name .' "
+          data-full_name=" '. $row->full_name .' " data-age="'. $row->age .'" data-address=" '. $row->address .' " data-phone="'. $row->phone .'" data-image=" '. $row->image .' " aria-hidden="true"></i></td>
         </tr>
         ';
-            }
+        }
 //        }
         $data = array(
-            'total_data' => $output
+            'total_data' => $output,
+            'total_column' => $total_row
         );
         return json_encode($data);
     }
